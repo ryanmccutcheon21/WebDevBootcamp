@@ -1,0 +1,222 @@
+What Matters?
+
+Crucial:
+
+- Express Router Basics
+- Understanding Cookies
+- Cookie Parser 
+
+
+Important:
+
+- Signed Cookies 
+
+
+Nice to Have:
+
+- HMAC Signing 
+
+
+
+
+
+Express Router Intro:
+
+- he made a folder called routes 
+
+- then made a files called shelters.js
+
+- once you have your route file created, require express 
+at the top 
+
+- then, use express.Router() which will return us a new 
+router object 
+
+const router = express.Router();
+
+- now, we add all of the routes we want for this 
+one router 
+
+router.get('/shelters' (req, res) => {
+    res.send('Viewing all shelters');
+})
+
+router.post('/shelters' (req, res) => {
+    res.send('Creating a shelter');
+})
+
+router.get('/shelters/:id' (req, res) => {
+    res.send('Viewing one shelter');
+})
+
+router.get('/shelters/:id/edit' (req, res) => {
+    res.send('Editing one shelter');
+})
+
+
+- now export this router 
+
+module.exports = router;
+
+
+- now, in the index.js, require the route 
+
+- he did:
+
+const shelterRoutes = require('./routes/shelters');
+
+- now we need to tell our app to use these routes, requiring them is 
+not enough 
+
+- we need to use app.use('string/Path', router)
+
+- so add:
+
+app.use('/', shelterRoutes);
+
+- the nice thing though, is if you do /shelters in the app.use instead 
+of just / , that prefixes all the routes with /shelter like this
+
+- index.js now looks like:
+
+const express = require('express');
+const app = express();
+const shelterRoutes = require('./routes/shelters);
+
+app.use('/shelters', shelterRoutes);
+
+app.listen(3000, () => {
+    console.log('Serving app on localhost:3000')
+})
+
+
+- shelters.js now looks like:
+
+router.get('/' (req, res) => {
+    res.send('Viewing all shelters');
+})
+router.post('/' (req, res) => {
+    res.send('Creating a shelter');
+})
+router.get('/:id' (req, res) => {
+    res.send('Viewing one shelter');
+})
+router.get('/:id/edit' (req, res) => {
+    res.send('Editing one shelter');
+})
+
+
+
+
+
+Express Router and Middleware:
+
+- in shelters.js (he made a new file called admin.js to fake some auth),
+if you put:
+router.use((req,res,next) => {
+    if(req.query.isAdmin) {
+        next();
+    }
+    res.send("Sorry, not an admin!")
+})
+
+- saying router.use, instead of app.use means that every route
+in admin.js or whatever routes you have it connected to, will be 
+behind that middleware in the app.use, instead of having to do 
+app.use and go add the middleware to every route 
+
+
+
+
+
+
+Introducing Cookies:
+
+- in Europe and the US, when you go to a new webpage it is required 
+by law that they have to ask if you want to use cookies 
+
+- cookies are little bits of information that are stored in a user's 
+browser when browsing a particular website 
+
+- once a cookie is set, a user's browser will send the cookie on 
+every subsequent request to the site 
+
+- cookies allow use to makke HTTP stateful 
+
+- examples: if a user prefers dark/light mode, storing a user's 
+shopping cart, tracking a user's browsing, etc. 
+
+- open chrome dev tools, go to application tab, under the storage 
+section, choose cookies 
+
+
+
+
+
+
+Sending Cookies:
+
+- in cookies demo, in index.js see the app.get('/setname')
+
+- notice how he uses res.cookie() to send a cookie 
+
+- the first string 'name' is the key, then the 'henrietta'
+is the value of the cookie 
+
+- go check the application tab and try it yourself in a browser, he 
+was using localhost:3000/setname 
+
+
+
+
+
+Cookie Parser Middleware:
+
+- to get the information out of the cookies in the browser, we find 
+it in req.cookies 
+
+- don't have this functionality out of the box with Express 
+
+- need to install cookie-parser from npm 
+
+- npm i cookie-parser 
+
+- then, require it in the index.js 
+
+- const cookieParser = require('cookie-parser');
+
+- app.use(cookieParser());
+
+- can use to greet someone by name with the cookie information like 
+below:
+
+- const {name} = req.cookies;
+res.send(`Hey there %{name}`);
+
+- he did name = 'No-name' to handle someone who doesn't yet 
+have a cookie for name 
+
+
+
+
+
+Signing Cookies:
+
+- setting a cookie as signed, has cookie-parser sign it using a 
+secret code that we will specify 
+
+- this allows cookie-parser to tell if the cookies have been tampered 
+with on the server-side when it is sent back to us after the cookie 
+has been sent to the browser 
+
+- he makes his secret, thisismysecret in the app.use(cookieParser())
+
+- see how he made the cookie signed in the /getsignedcookie route 
+
+- try it yourself, make a route and send a signed cookie, go to that 
+route in the browser and use the chrome dev tools application to see 
+the value of fruit in cookies. It'll be a random string with the value 
+inside the random characters. 
+
+- now to unsign, to verify that it worked and wasn't tampered with, 
+see how he did the /verifyfruit route 

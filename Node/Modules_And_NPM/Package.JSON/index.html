@@ -1,0 +1,88 @@
+What is it?
+
+- contains meta data about the particular project,
+or package, or application.
+
+- goes in every node app we create
+
+
+
+Creating Our Own package.json
+
+- Go to terminal in project you want to create the package in
+
+- Type npm init
+
+- This is the easiest way to create a package.json
+that comforms to the template that we follow
+
+- Enter information you want into what comes up
+after running npm init
+
+- This will make a package.json with the information
+you provided.
+
+
+
+Installing a Package to Our package.json We Created
+
+- He installs figlet from npm into the Artser directory
+
+- See the Artser file
+
+- to install it he typed npm i figlet
+
+- this is used in case the node_modules gets deleted
+or if you want to send the project to someone else, so
+they can see what dependencies you installed from npm
+
+- Got it to work on myArtster
+
+- cd into myArtster and then type node index.js
+to get it to run in the terminal
+
+
+
+
+
+Installing All Dependencies for a Project:
+
+- Nice for other people if they are ever going
+to be working on the code
+
+- We normally don't include the node_modules
+when we share code with people
+
+- Why you won't see node_modules in github repos
+
+- you will see the package.json
+
+- Go to Make Group Chat App bookmark and download the
+zip file and add it to a directory
+
+- I added it to MyGroupChatApp
+
+- Notice it doesn't come with node_modules
+
+- If you try to run node index.js in the terminal
+you will get an error right now because it is expecting
+module called 'express'
+
+- you can go into the package.json file to see what
+depencies were installed to make the app
+
+- instead of having to install all the dependencies
+individually, if you go to the terminal in the directory still,
+and type
+
+npm install
+
+with nothing after it, it will install all the
+dependencies.
+
+- now if you type node index.js in the terminal
+it will say: listening on *:8080
+
+- so open a new window and enter:
+localhost:8080
+to pull up the webpage

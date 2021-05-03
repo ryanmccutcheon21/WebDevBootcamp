@@ -1,0 +1,346 @@
+What Matters?
+
+Crucial:
+
+- Installation
+
+- The Mongo Shell
+
+- Mongo Inserts
+
+- Mongo Finding/Querying
+
+- Mongo Updates
+
+- Mongo Deletions
+
+
+
+Important:
+
+- Databases Basics
+
+- SQL vs. NoSQL
+
+
+
+
+
+
+
+Intro to Databases:
+
+Why use a database?
+
+- databases can handle large amounts of data efficiently and
+store it compactly
+
+- they provide tools for easy insertion, querying, and updating of data
+
+- they generally offer security features and control over access to data
+
+- the (generally) scale well
+
+
+SQL vs. NoSQL:
+
+SQL:
+
+- Stuctured Query Language
+
+- SQL's are relational databases
+
+- we pre-define a schema of tables before we insert anything
+
+- like Excell spreadsheet
+
+
+NoSQL:
+
+- non-relational
+
+- newer
+
+- common ones: MongoDB, Couch DB, Neo4j, Cassandra, Redis
+
+
+Why We're Learning MongoDB:
+
+- Mongo is commonly used with node, which we've learned
+
+- Mongo and Express go together frequently
+
+- Mongo is easy to get started with, especially w/ JS background
+
+- Learning mySQL or Postgres at some point in career, down the road
+
+
+
+
+
+
+The MongoDB Shell:
+
+- comes with its own kind of REPL like node where we can go test
+things out and debug
+
+- more than a toy and very useful
+
+- place we can go to create, and edit new databases, change work on security
+
+- the way we open it is go to terminal and type: mongo
+
+- now you're in the Mongo Shell
+
+- type: help
+
+- that will show you useful commands
+
+- it's actually a JS shell, you can type JS in it
+
+- by default, when you open up the shell, if you type in the
+terminal: db , that is the database you will be using by default
+
+- test will be the database it makes for you
+
+- if you type: show databases/ show dbs , it will show your databases
+
+- the easiest way to make a database is to use the command: use dbName
+
+- now if you type: show dbs , you won't see the database because there
+is nothing in it yet
+
+- if you type: db , it will show that you're in the database that you just made though
+
+- press: control + C , to get out of the database
+
+
+
+
+
+What on earth is BSON?
+
+- see on mongodb website json and bson
+
+- json is slow, so MongoDB uses a modified version and
+calls it bson (Binary JavaScript Object Notation)
+
+- Mongo stores data as binary to make it faster, and take less space in memory
+
+
+
+
+
+
+Inserting with MongoDB:
+
+- go to the Mongo site, and under docs choose server, then look
+under the CRUD Operations section
+
+- 3 methods to insert, he usually just uses insert();
+
+- in terminal: db.dogs.insert({name: "Charlie", age: 3, breed: "corgie", catFriendly: true})
+
+- dogs doesn't exist yet, so mongo makes that collection for us
+
+- now type: show collections
+
+- should be a dogs collection
+
+- to see all dogs type: db.dogs.find()
+
+- when you type that, notice how the collection we just created for
+Charlie has an _id
+
+- known as a primary key, Mongo creates it for us
+
+- see ObjectId in the MongoDB docs for more info
+
+- we rely on the built in id's usually
+
+- now this time he inserts multiple things into the collection using
+an array in the insert function
+
+- db.dogs.insert([{name: "Wyatt", breed: "Golden", age: 14, catFriendly: false}, {name: "Tonya", breed: "Chihuahua",
+age: 17, catFriendly: true}])
+
+- get back a BulkWriteResult
+
+- db.dogs.find()
+
+- should have 3 different dogs
+
+- db.cats.insert({name: "Blue Steele", age: 6, dogFriendly: false, breed: "Scottish fold"})
+
+- db.cats.find()
+
+- we have separate collections, that are in the same database now
+
+- show dbs
+
+- if we use another database like: use local
+
+- we wont be able to find dogs or cats collection
+
+- go back to: use animalShelter
+
+- should be able to find the dogs, and cats collections again
+
+
+
+
+
+Finding with MongoDB:
+
+- db.collection.find()
+
+- we use that to find every object in a collection
+
+- often we have some criteria that we're trying to find based
+upon
+
+- like if we want all corgies returned
+
+- db.dogs.find({breed: "corgi"})
+
+- the find method is case-sensitive
+
+
+
+
+
+
+Updating with MongoDB:
+
+- we'll look at all of our dogs, and find one to update
+
+- we want to change Charlie's age to 4
+
+- 3 methods to update
+
+- db.collection.updateOne()
+db.collection.updateMany()
+db.collection.replaceOne()
+
+- db.dogs.updateOne({name: "Charlie"}, {$set: {age: 4}})
+
+- first argument we pass in is the selector of what we
+want to find to change
+
+- use $set to change the value with the 2nd argument
+
+- to set multiple fields example
+
+- db.dogs.updateOne({name: "Charlie"}, {$set: {age: 4, breed: "Lab"}})
+
+- if you try to set something that isn't currently in the set
+document
+
+- db.dogs.updateOne({name: "Charlie"}, {$set: {color: 'chocolate'}})
+
+- it will set a new key: value pair in the Charlie object
+
+- updateMany() example
+
+- db.dogs.updateMany({catFriendly: true}, {$set: {isAvailable: false}})
+
+- now if we look at dogs and isAvailable is set to false for both dogs
+where catFriendly: true
+
+- $currentDate operator is used to set some value in a document
+to the current date
+
+- Example:
+
+db.cats.find()
+
+db.cats.updateOne({age: 6}, {$set: {age: 7}, $currentDate: {lastChanged: true}})
+
+- now do: db.cats.findOne()
+
+- now lastChanged key will be set to the current date that it was changed
+
+- lastChanged can be named whatever you want to name it, we were
+just using that as an example of using $currentDate operator to set
+a value to the currentDate
+
+
+
+
+
+
+Deleting with MongoDB:
+
+- 2 methods: deleteMany(), and deleteOne()
+
+- db.cats.deleteOne({name: 'Blue Steele'})
+
+- should delete the cat with that name
+
+- db.dogs.deleteMany({"isAvailable: false"})
+
+- should delete all dogs with the key isAvailable: false
+
+- to delete everything in a collection use:
+
+db.dogs.deleteMany({})
+
+
+
+
+
+Additional MongoDB Operators:
+
+- to find an object with something between two values
+
+- he made more dogs, one looks like this in bson
+"_id": ObjectId("someNumberIdon't want to type"),
+"name": "Dodger",
+"breed": "Corgi",
+"age": 10,
+"weight": 31,
+"size": "M",
+"personality": {
+"catFriendly": true,
+"childFriendly": true
+}
+
+- how do we access child/catFriendly when it's nested in personality?
+
+- db.dogs.find({'personality.childFriendly': true})
+
+- notice the dot syntax to access nested properties
+
+- something more specific
+
+- db.dogs.find({'personality.childFriendly': true, age: 10})
+
+
+
+- now he was looking at query operators in the MongoDB docs
+
+- greater than operator
+
+- db.dogs.find({age: {$gt: 8}})
+
+- finds dogs with age greater than 8
+
+- can use $gte for greater than/equal: >=
+
+- $in is another useful operator, set it to an array of values
+
+- db.dogs.find({breed: {$in: ['Mutt', 'Corgi']}})
+
+- finds dogs where breed is Mutt, or Corgi
+
+- can combine operators
+
+- db.dogs.find({breed: {$in: ['Mutt', 'Corgi', 'Chihuahua']}, age: {$lt: 10}})
+
+- selects where breed is either Mutt, Corgi, or Chihuahua, and age is less than 10
+
+-$ne is not equal, will match things that are not equal
+
+- $nin is not in
+
+- see MongoDB docs for other operators

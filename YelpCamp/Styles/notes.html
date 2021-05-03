@@ -1,0 +1,68 @@
+New EJS Tool for Layouts:
+
+- EJS - mate
+
+- npm i ejs-mate
+
+- in app.js require ejs mate
+
+- const ejsMate = require('ejs-mate');
+
+- app.engine('ejs', ejsMate);
+
+- in views folder, make a folder called layouts
+
+- in layouts folder, make file named boilerplate.ejs
+
+- add basic html with the !
+
+- make title BOILERPLATE
+
+- he makes two h1's, one that says before, and the
+other says after
+
+<!-- - in between those two h1's he adds <%- body %> -->
+
+- that's the important part of the ejs-mate,
+it has to say body too
+
+- now to show how it works, he goes to the index.ejs
+in the campgrounds workspace
+
+- he got rid of the head, body and all the
+standard html wrapper elements
+
+<!-- - he added: <% layout(layouts/boilerplate) %> to the very top of the page in 
+    index.ejs  -->
+
+- now all the markup in the index.ejs should be passed
+to the boilerplate.ejs template as the body with the
+<!-- <%- body %> -->
+
+- now he just made all his other templates use the
+<!-- same <%- layout('layouts/boilerplate') %> -->
+
+- now he deletes the h1's from the boilerplate.ejs because he
+<!-- was just using those to show where the <%- body %> would be inserted -->
+
+
+
+
+
+
+Bootstrap Boilerplate:
+
+- Bootstrap 5 doesn't depend on jQuery anymore
+
+- this project uses Bootstrap 5, the alpha version
+
+- he just uses the cdn for now, in this project
+
+<!-- - now he adds the main element with class container around the <%- body %>  -->
+
+
+
+
+Navbar Partial:
+
+-

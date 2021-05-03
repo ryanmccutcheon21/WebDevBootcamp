@@ -1,0 +1,283 @@
+Installing Express:
+
+- type this in terminal: npm i express
+
+
+Express App:
+
+- Goal is to get a server up and running;
+
+- require express in the index.js
+
+- on the next line, execute express like this:
+const app = express();
+
+- if you console.dir(app):
+You'll see that the app object has a lot of methods
+on it.
+
+- listen for a request to get a server going by
+using this:
+app.listen();
+
+- app.listen() needs to have a port that it's going
+to listen on.
+
+- we used:
+app.listen(3000, () => {
+console.log('Listening on port 3000')
+})
+
+- notice the callback function at the end
+
+- it will run once app starts listening/ it's
+actually running on port 3000
+
+- if you node index.js right now you'll see
+a square at the bottom meaning it's sitting there
+listening for a request
+
+- we need to send a request
+
+- what we request is only served locally on your machine
+(localhost:3000)
+
+- if you type that in the browser url, you'll see a message
+saying "Cannot GET/"
+
+- now need to add: app.use(() => {
+console.log("Ex: We got a new request!");
+})
+
+- anytime we have an incoming request, the app.use callback will run
+
+- hit control+C to get out of where you're at in the terminal
+
+- type in: node index.js
+
+- go to browser and you'll see nothing has changed
+
+- if you look in the terminal though, it'll show the app.use callback
+
+
+
+
+Request & Response Objects:
+
+- In order to respond with content, use the below
+
+- Express makes us these objects automatically
+
+- we have access to them on every incoming request
+
+- add req, and res in the app.use callback params
+
+- app.use((req, res) => {
+console.log("Ex: We got a new request!");
+})
+
+- an http request is not a JS object, it's text information not
+particular to any programming language
+
+- add console.dir(req); to the app.use callback
+
+- you'll see a really massive object with things like host: and pathName: and originalUrl:
+
+- the response object has methods on it, including response.send or res.send
+
+- look at the express docs for res.send
+
+- res.send sends the http response
+
+
+
+app.use((req, res) => {
+console.log("Ex: We got a new request!");
+res.send('Hello, we got your request. This is a response!');
+});
+
+
+- type in localhost:3000 in Postman now and see what you get
+
+- now change the res.send to be:
+res.send({color: 'red'})
+
+- now use control+C and then node index.js to refresh the browser
+
+- re-enter the port name: localhost:3000 in Postman
+
+- this time if you look in headers, the content type was automatically
+set to application/json
+
+
+
+
+
+Express Routing Basics:
+
+- we'll add some paths /cats and /dogs and a home route / nothing
+as an example
+
+- Express gives us methods from the express(); function
+
+- app.get('/cats', (req, res) => {
+console.log('Cat Request!!');
+});
+
+- app.get(); expects 2 things: the path that we are matching, and
+a callback function
+
+- we can only have 1 res.send so he commented out
+the one we currently have and the entire app.use()
+
+- now if yuo go to the browser and type localhost:3000/cats
+you will get 'Cat request' returned in the console
+
+- add a response now
+
+app.get('/cats', (req, res) => {
+res.send('MEOW');
+});
+
+- add a dogs route now
+
+app.get('/dogs', (req, res) => {
+res.send('WHOOF');
+});
+
+- add our home route, more commonly referred to a root
+
+app.get('/', (req, res) => {
+res.send('This is the home page!');
+});
+
+- in a real website, the url will come before the /
+Ex: mywebpage.com/cats
+
+- now we need to respond to post requests
+
+app.post('/cats', (req, res) => {
+res.send('This is a POST request to /cats. Entirely different than a GET request!');
+});
+
+- use the at the end of the file to respond to errors and
+people trying to get to paths that don't exist
+
+app.get('*', (req, res) => {
+res.send('I don't know that path!');
+});
+
+- VERY IMPORTANT TO PUT AT THE END
+
+- if you put it before the other app.get(), it will win cause it runs first
+and the res.send will run for any path even if we defined it.
+
+
+
+
+
+Express Path Parameters:
+
+- for pages like reddit, we dont want to define a route for every
+search path
+
+- we would define a generic pattern
+
+- Ex: /r/somethingHere
+
+- in Express, inside the path string we use a : to designate a path variable
+
+app.get('/r/:subreddit', (req, res) => {
+res.send('This is a subreddit!');
+});
+
+- notice the colon in the app.get
+
+- often we need to use the information passed into the path variable
+
+- to get access to this information, we acccess it in the request object
+
+- this property is called params
+
+app.get('/r/:subreddit', (req, res) => {
+console.log(req.params);
+res.send('This is a subreddit!');
+});
+
+- restart the server and you'll see in the log what the paramater was
+
+- extract it from params by destructuring
+
+app.get('/r/:subreddit', (req, res) => {
+const {subreddit} = req.params;
+res.send(`<h1>Browsing the ${subreddit} subreddit</h1>`);
+});
+
+- try typing in different searches in:
+localhost:3000/r/search
+
+- see this url:
+https://www.reddit.com/r/natureismetal/comments/le0ilx/chicken_with_genetic_defect/
+
+- it takes in r, natureismetal, comments, id, search
+
+- to do this we could write
+
+app.get('/r/:subreddit/:postId', (req, res) => {
+const {subreddit, postId} = req.params;
+res.send(`<h1>Viewing Post ID: ${postId} on the ${subreddit} subreddit</h1>`);
+});
+
+
+
+
+
+Working With Query String:
+
+- the portion of the url that comes after ?
+
+app.get('/search', (req, res) => {
+console.log(req.query);
+res.send('Hi');
+});
+
+- the query object is empty if you put this in Postman
+
+- now add a ?q=dogs&color=red
+to the end of the url
+
+- the query object now contains that information
+
+app.get('/search', (req, res) => {
+const {q} = req.query;
+res.send(`<h1>Search results for: ${q}</h1>`);
+});
+
+- this will get the information from the query
+
+- try typing different ?q= whatever in the browser to see this work
+
+app.get('/search', (req, res) => {
+const {q} = req.query;
+if(!q) {
+res.send('Nothing found if nothing searched');
+}
+res.send(`<h1>Search results for: ${q}</h1>`);
+});
+
+- that will return the if statement if nothing is searched for
+
+
+
+
+Auto-Restart with Nodemon:
+
+- restarts our server automatically for us whenever we change our code
+
+- see nodemon in npm website
+
+- i made a bookmark for it
+
+- install it globally
+
+- run nodemon fileName instead of node in the terminal to use it

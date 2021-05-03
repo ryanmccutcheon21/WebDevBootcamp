@@ -1,0 +1,608 @@
+What Matters?
+
+Crucial:
+
+- Integrating Mongoose with Express
+- Defining Our Model
+- Products Index
+- Product Details
+- Creating Products
+- Updating Products
+- Deleting Products
+
+
+Nice to Have:
+
+- Filtering by Category
+
+
+
+
+- see the Mongoose_With_Express_CODE for the finished product of
+this section
+
+
+
+
+
+Express + Mongoose Basic Setup:
+
+- we'll make a simple web app where we'll have full CRUD
+
+- we'll have a UI, it'll be surfed on the web, but we'll use
+Mongoose behind the scenes to interact with our MongoDB
+
+- go to terminal
+
+- make an empty directory: he names his Mongoose_Express
+
+- cd into that folder
+
+- npm init -y
+
+- npm i express ejs mongoose
+
+- touch index.js
+
+- mkdir views
+
+- now go to the workspace in VS Code and go to the index.js
+
+- add all the usual stuff
+
+- const express = require('express');
+const app = express();
+const path = require('path');
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.listen(3000, () => {
+console.log("App is listening on port 3000!")
+})
+
+- go to terminal
+
+- nodemon index.js
+
+- make sure everything works
+
+- now add a basic route
+
+const express = require('express');
+const app = express();
+const path = require('path');
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.get('/dog', (req, res) => {
+res.send('Whoof!') // this is what we just added, to make sure it works
+})
+
+app.listen(3000, () => {
+console.log("App is listening on port 3000!")
+})
+
+- go to browser
+
+- localhost:3000/dog
+
+- should work
+
+- now let's integrate mongoose
+
+- eventually we'll have the logic in a different file, however
+we'll just add the mongoose logic in our index.js for now
+
+
+const express = require('express');
+const app = express();
+const path = require('path');
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/movieApp', { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => {
+console.log(" MONGO CONNECTION OPEN!!!")
+})
+.catch(err => {
+console.log("OH NO, MONGO CONNECTION ERROR!!!!")
+console.log(err)
+})
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.listen(3000, () => {
+console.log("App is listening on port 3000!")
+})
+
+- go to terminal, everything should be working
+
+
+
+
+
+Creating Our Model:
+
+- lets make a separate folder for our models so we don't have
+to add it all in index.js cause sometimes we could have many models
+and it could get legnthy to have them all in index.js
+
+- he makes the models folder now
+
+- he makes the product.js in the models folder now
+
+- now we need to require mongoose in product.js because we
+are going to make a mongoose model in this file
+
+- at the top: const mongoose = require('mongoose')
+
+- don't need to connect to the database in this file because
+we are going to require this model in index.js
+
+- now make the schema: const productSchema = new mongoose.Schema({
+name: {
+type: String,
+required: true
+}
+price: {
+type: Number,
+required: true,
+min: 0
+}
+category: {
+type: String,
+lowercase: true,
+enum: ['fruit', 'vegetables', 'dairy']
+}
+})
+
+- now we need to compile our model
+
+const Product = mongoose.model('Product', productSchema)
+
+- now let's export this from the file
+
+module.exports = Product;
+
+- now we can import this model and use it somewhere else
+
+- go to index.js
+
+- we want to make a new database for this app so he adds
+farmStand at the end of 'mongodb://localhost:27017/farmStand'
+
+- let's require our model
+
+const Product = require('./models/product');
+
+- he likes to make a seed file to begin with, to seed our database,
+to give it some initial data
+
+- now he makes the seeds.js file
+
+- he requires the Product at the top of the file
+
+- now he's also going to connect to mongoose, so he copies and pastes
+into the seeds.js
+
+mongoose.connect('mongodb://localhost:27017/movieApp', { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => {
+console.log(" MONGO CONNECTION OPEN!!!")
+})
+.catch(err => {
+console.log("OH NO, MONGO CONNECTION ERROR!!!!")
+console.log(err)
+})
+
+- this is a file he will run on its own with no server, no express, no
+web app. we will run it anytime we want to get some new data in the
+database just for development purposes
+
+- now he adds const p = new Product ({
+name: 'Ruby Grapefruit',
+price: 1.99,
+category: 'fruit'
+})
+
+p.save().then(p => {
+console.log(p)
+})
+.catch(e => {
+console.log(e)
+})
+
+- we should be able to run this single file
+
+- stop the server in terminal
+
+- node seeds.js
+
+- should work
+
+- good to double check
+
+- show dbs
+
+- use farmStand
+
+- show collections
+
+- should show products
+
+- db.products.find()
+
+- should all work
+
+- now he does the Product.insertMany() method in seeds.js
+
+- he hardcoded in some basic products
+
+- going to pass the array into insertMany()
+
+- Product.insertMany(seedProducts)
+.then(res => {
+console.log(res)
+})
+.catch(e => {
+console.log(e)
+})
+
+- run the file again
+
+- node seed.js
+
+- go to MongoDB
+
+- all the products should be in there
+
+- usually modify the schema as we go
+
+
+
+
+
+
+Products Index:
+
+- let's start by defining our first actual route that will query
+our MongoDB
+
+- he changes the app.get to /products in index.js
+
+- now adds: Product.find({})
+// to query the product model
+
+- this takes time so he makes it an async function, and awaits Product.find()
+and saves it to a variable
+
+- and adds all products will be here to the res.send and logs products
+
+- now make sure it's working
+
+- nodemon index.js
+
+- go to /products in the browser
+
+- should show an array of our products in the console in the terminal
+
+- now he makes the products file in the views directory, then
+makes the index.ejs
+
+- now res.send with res.render('products/index')
+
+- checks it in the browser, should say all products (what he made
+the h1 in index.ejs)
+
+- now let's pass through all the products we found, he adds
+{products} as the second argument in res.render
+
+res.render('products/index', {products})
+
+- also gets rid of the console.log(products) cause we don't need it anymore
+
+- now he adds the ejs stuff to make a list in index.ejs
+
+
+
+
+
+
+
+Product Details:
+
+- in this we'll set up a details page for a product
+
+- in index.js he adds the app.get('/products/:id')
+
+- to make a name url safe if you wanted to look up a product
+in the db by name you need to use slug, but we won't go over that
+now
+
+- now he adds the async function in the app.get, adds
+const { id } = req.params; to get the id, then we call
+Product.findById(); to get the id from the product in the db
+
+- we need to await in so he adds await and saves it to variable product
+
+- then he console.log(product) and adds res.send('details page')
+
+- now he goes and copies one of the ids from the console and goes
+to the browser /product/idWeJustCopied and it should show that one product
+in the console and say details page in the browser
+
+- now we need to render a template
+
+- replace res.send with res.render('products/show', { product })
+
+- now goes to views > products > makes show.ejs
+
+- he adds the markup for this template that he wants to make
+for this template
+
+- we don't want to have to manually type the id in the url, so
+let's go back to the index page and make each one a link to go
+to the show page
+
+- so in index.ejs we have access to the id, so he makes the anchor tag
+<!-- with <a href="/products/<%=product._id%>"> -->
+
+- each link should go to its own separate show page now
+
+- now he makes the back link in the show page to get back to
+the index page
+
+
+
+
+
+
+Creating Products:
+
+- we need a form, and a route that we submit the form to
+
+- he adds in index.js
+app.get('/products/new', (req, res) => {
+res.render('/products/new')
+})
+
+- then makes the new.ejs template
+
+- then adds in index.js to make the route that we submit to
+app.post('/products', (req, res) => {
+console.log(req.body)
+res.send('making your product')
+})
+
+&
+
+app.use(express.urlencoded({extended: true})) // so we have
+access to the body of the post request
+
+- when you submit the form now, it should say making your product in the
+browser
+
+- now we want to make a product with that
+
+- so in index.js he adds
+new Product(req.body)
+// in the app.post and saves it to the newProduct variable, and since it
+takes time, he makes it an async function and awaits it
+
+- now we need a redirect, so he adds
+res.redirect(`/product/${newProduct._id}`) // takes back to the show page
+
+- we add a redirect on every post request, or delete or update
+so the user can't keep refreshing the browser and make a newProduct/post
+request over and over
+
+- when you submit the form now, it should redirect to the show page
+
+- now if you stop the server and restart it, the products should still
+be there because they're saved to the database
+
+
+
+
+
+
+Updating Products:
+
+- now we need a get request route to serve the edit form
+app.get('/products/:id/edit', async (req, res) => {
+const { id } = req.params;
+const product = await Product.findById(id);
+res.render('products/edit', { product })
+})
+
+- now he makes edit.ejs and makes the edit form
+
+- now he makes a route for this
+
+app.put('/products/:id', async (req, res) => {
+
+})
+
+- then stops cause we need to use the method-override for our
+put request
+
+- so he stops the server in terminal and installs method-override so
+we can use the put request
+
+- npm i method-override
+
+- then starts the server back up: nodemon index.js
+
+- now requires it in index.js by adding:
+const methodOverride = require('method-override')
+app.use(methodOverride('_method'))
+
+- now we need to add: ?_method=PUT to the end of our form action
+
+- now we need to write the logic to update a product using mongoose
+
+- app.put('/products/:id', async (req, res) => {
+const { id } = req.params;
+const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true, new: true })
+res.redirect(`/products/${product._id}`)
+})
+
+- now he makes the link on the show page where you can edit on
+the show.ejs
+
+- now makes the link where you can go back to the show page
+in the edit.ejs
+
+
+
+
+
+
+Tangent on Category Selector:
+
+- let's get the edit form to correctly show the current category
+that it is set to so you don't have to select it everytime if you
+don't want to edit it
+
+- to do this, we need to dynamically apply the 'selected' attribute
+to the markup in the form to whichever category is the one for the product
+
+- so he adds this syntax to the form for every option
+<!-- 
+    
+    <%= product.category === 'fruit' ? 'selected' : ' '%>
+
+-->
+
+- the part that says 'fruit' should match the option value, it's
+saying is the product category the same as the value? If it is, add
+the selected attribute, otherwise it's just an empty string and doesn't
+add an attribute
+
+- this is kind of clunky, especially if we have more categories down the line
+
+- the better way we're gonna use is to use a loop to generate
+the options for us
+
+- in index.js he adds:
+const categories = ['fruit', 'vegetable', 'dairy'];
+
+- now let's pass it through, first he passes it through the app.get('/products/new')
+by adding , {categories} in the res.render
+
+- now in new.ejs he makes the for loop
+<!-- 
+    <% for(let category of categories){ %>
+<option value="<%=category%>"><%=category%></option>
+<% } %> 
+
+-->
+
+- that should dynamically make our options based on the categories
+we have
+
+- now let's dynamically add in the selected attribute
+
+- in edit.ejs he uses the loop, then in index.js in:
+app.get('/products/:id/edit'), he passes in categories to the
+res.render like this (product is already passed in):
+{ product, categories }
+
+- now in the for loop he adds the terniary method
+<!-- 
+    <% for(let category of categories){ %>
+<option value="<%=category%>" <%= product.category === category ? 'selected' : ''%>><%=category%></option>
+<% } %> 
+
+-->
+
+- should have the correct category selected in edit page now
+
+- now he makes new product link in the index.ejs page
+
+
+
+
+
+
+
+Deleting Products:
+
+- now we setup a delete route in index.js, using method-override
+
+- for now he makes a delete form on the show page, show.ejs
+
+- now setup the route in index.js
+app.delete('/products/:id', async (req, res) => {
+const { id } = req.params;
+const deletedProduct = await Product.findByIdAndDelete(id);
+res.redirect('/products');
+})
+
+
+
+
+
+
+Filtering By Category:
+
+- show a page where it lists all the products that fit a certain
+category
+
+- we'll use a query string in the url: /products?category=dairy
+
+- first, he goes to show.ejs
+
+<!-- - makes a link in the li Category: that goes to 
+    
+/products?category=<%=product.category%>"><%= product.category %></a> -->
+
+- now in the route for /products we're gonna look in req.query and
+see if we have a category there
+
+app.get('/products', async (req, res) => {
+const { category } = req.query;
+if(category) {
+const products = await Product.find({ category }); // finds based on the category not just all like below {}
+res.render('/products/index', { products });
+}
+else {
+const products = await Product.find({}); // if there isn't a category, we'll show all products
+res.render('/products/index', { products });
+}
+})
+
+- instead of saying all products now when we are looking at
+a certain category, we want it to say the category it's on
+
+- in index.js pass through the category when we render
+
+app.get('/products', async (req, res) => {
+const { category } = req.query;
+if(category) {
+const products = await Product.find({ category }); // finds based on the category not just all like below {}
+res.render('/products/index', { products, category }); // notice how we pass through the category now
+}
+else {
+const products = await Product.find({}); // if there isn't a category, we'll show all products
+res.render('/products/index', { products, category: 'All' });
+}
+})
+
+- in index.ejs, he changes the h1 to display the category
+<!-- 
+    <h1><% category %> Products!</h1>
+ -->
+
+- now we can have fruit products instead of all products for every page and etc.
+
+- he would make it where the category h1 has the first letter uppercase,
+and make a link to go back to the all categories
+
+- let's make the link
+
+- in index.ejs he adds the all products link with href /products
+
+- and the if statement saying if the category isn't All, it will display
+the link

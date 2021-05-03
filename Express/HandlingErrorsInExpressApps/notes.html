@@ -1,0 +1,183 @@
+What Matters?
+
+Crucial:
+
+- Defining Custom Error Handlers
+
+- Handling Async Errors
+
+- Defining Custom Error Class
+
+
+Important:
+
+- Express' Built-in Error Handler
+
+- Working with Mongoose Errors
+
+
+
+
+
+
+Express' Built-in Error Handler:
+
+- in folder Error_Basics, in index.js, he adds the app.get
+/error
+
+- go to express docs, guide, error handling to read about
+Express error handling
+
+
+
+
+
+
+Defining Custom Error Handlers:
+
+- define error-handling middleware functions in the same way
+as other middleware functions
+
+- four arguments instead of 3
+
+- (err, req, res, next)
+
+- for example:
+
+- app.use(function (err, req, res, next) {
+console.error(err.stack)
+res.status(500).send('Something broke!')
+})
+
+- want to put this last, after all the app.use's
+
+- see the index.js in Error_Basics
+
+- if we throw an error anywhere in the code, our error handling
+middleware will run
+
+- when working with errors, and if we want to hit an error
+handling middleware, we need to pass the error into next()
+
+- in the example, he just passes the existing error into the funciton
+like this: next(err)
+
+
+
+
+
+
+Our Custom Error Class:
+
+- Express is a lightweight framework, doesn't really have a
+standard way of handling errors, so we usually will make our
+own error handling class
+
+- make a new file, call it AppError.js in the main workspace folder
+
+- in AppError.js, add:
+class AppError extends Error {
+constructor(message, status) {
+super();
+this.message = message;
+this.status = status;
+}
+}
+
+module.exports = AppError;
+
+
+- then go into index.js and require AppError
+
+- const AppError = require('./AppError');
+
+- now he tests it in the const verifyPassword by throwing a new
+AppError with the 2 arguments, 'password required', and 401 for the
+status code
+
+- every error automatically has a .stack property
+
+- in index.js he adds:
+
+app.use((err, req, res, next) => {
+const {status = 500} = err;
+const {message = 'Something went wrong'} = err;
+res.status(status).send(message)
+})
+
+- will show Something went wrong in the browser when an error is thrown
+
+- the 500 is the default value of the status, if there is no status
+on the error
+
+
+
+
+
+
+Handling Async Errors in Express:
+
+- in the Async Error folder, in index.js he adds an if statement
+in the app.get('/product/:id') to throw an error if product is not
+found
+
+- for errors returned from async functions invoked by route handlers
+and middleware, you must pass them to next() function where Express
+will catch and handle them
+
+- notice how he calls the AppError function in next()
+
+- best way to do it in an async function is with try, and catch
+
+- notice how in index.js, the app.post('/products'), he
+uses the try and catch to handle an error if anything goes
+wrong in the try
+
+- the finished code will look different than most of the things I said to notice,
+but the main takeaway is he was using try/catch in every async fumciton, which
+can get annoying, so in the next section, we make a wrapper function to make our
+work easier so we can handle errors without having to use try/catch and type it
+all the time
+
+
+
+
+
+Defining an Async Utility:
+
+- he calls the wrapper async function used to catch errors, wrapAsync
+
+- we pass the entire async function to it to handle errors
+
+- function wrapAsync(fn) {
+return function(req, res, next) {
+fn(req, res, next).catch(err => next(err))
+}
+}
+
+- fn refers to the async function that is passed in
+
+- now he wraps all the async functions in the function we just made
+
+- in Express 5, this won't be an issue, it will be able to handle async function
+errors automatically
+
+
+
+
+
+
+Differentiating Mongoose Errors:
+
+- really common issue is validation errors
+
+- every Mongoose error has a property called name
+
+- many types of Mongoose errors
+
+- in the app.use where he uses the if statement to say if err.name === 'ValidationError'
+he's making a custom response to that type of error from Mongoose, because that is one
+of the names of a Mongoose error
+
+- in product.js in the Schema, he adds 'name cannot be blank' to the
+name key, which will be thrown when the name field is not filled out

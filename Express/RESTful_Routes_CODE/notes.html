@@ -1,0 +1,834 @@
+What Matters?
+
+Crucial:
+
+- GET vs. POST Requests
+
+- Handling Post Requests in Express
+
+- Parsing Request Body
+
+- Forms + Express
+
+
+
+Important:
+
+- Method Override
+
+- RESTful Routing
+
+
+
+
+GET vs POST Requests:
+
+- two different HTTP requests
+
+- see the getpost.html and compare
+
+
+GET:
+
+- used to retrieve info for the most part
+
+- data is sent via query string
+
+- information is plainly visible in the url
+
+- limited amount of data can be seen
+
+
+POST:
+
+- used to post data to the server
+
+- used to write/create/update
+
+- data is sent via request body, not in a query string
+
+- can send any sort of data (JSON!)
+
+
+
+
+
+Defining Express POST Routes:
+
+- start a new project
+
+- npm init
+
+- npm i express
+
+- touch index.js
+
+- require express in index.js
+
+- const express = require('express')
+const app = express();
+
+app.get('/tacos', (req, res) => {
+res.send("GET /tacos response")
+})
+
+app.post('/tacos', (req, res) => {
+res.send('POST /tacos response')
+})
+
+app.listen(3000, () => {
+console.log('on port 3000')
+})
+
+- go to terminal > nodemon index.js
+
+- localhost:3000/tacos in postman as a get request to test the route
+
+- should see 'GET /tacos response'
+
+- change to post and should see the app.post console.log
+
+- notice how the form action in getpost.html goes to the url
+http://localhost:3000/tacos
+
+- needs to be http://url because right now the file he is using
+isn't being served with the http protocol
+
+- almost always we'll be working in a file that is
+served http
+
+- type in the form and submit it and see what happens now
+
+- now let's extract/view the post request data
+
+- in a post request the req object that is passed into the app.post
+will include a property called req.body
+
+- console.log(req.body) in the app.post
+
+- you'll get undefined returned in the console
+
+- go to the express docs and look at req.body
+
+- the default value is undefined
+
+- tell express to parse form encoded info from the request body,
+he adds it under the variables in index.js
+
+app.use(bodyParser.urlencoded({ extended: true }))
+
+- this is used to get form info
+
+- this is used to run a function on every request, app.use
+
+- now if you send the same request from the form, what you type in
+will be logged in the console
+
+- if you want to do something with it, destructure from req.body
+
+app.post('/tacos', (req, res) => {
+const { meat, qty } = req.body;
+res.send(`Ok, here are your &{qty} ${meat} tacos`) // he was typing different types of meat in the form as an example
+})
+
+- to parse json data we would use
+
+app.use(express.json);
+
+
+
+
+Intro to REST:
+
+- Representational State Transfer
+
+- architectural style for distributed hypermedia systems
+
+- basically a set of guidelines for how a client & server should
+communicate and perform CRUD operations on a given resource
+
+- look at gitHub gists and see how we could use the API to CRUD gists
+
+
+
+
+RESTful Comments overview:
+
+- create an array we'll pretend is a database
+
+- /comments will be our base path for everything we do
+
+- we'll have different http verbs, we use get to get comments, and post
+to create a new one
+
+- GET /comments - will show all comments
+
+- POST /comments - will be how we create a new comment
+
+- to get a specific comment
+
+- GET /comments/:id - get one comment (using ID)
+
+- to update a comment we'll use put or path request
+
+- PATCH /comments/:id - will update one comment
+
+- DELETE /comments/:id - will remove one comment
+
+- this is not the only way to implement RESTful APIs, but
+it is really common
+
+
+
+
+
+RESTful Comments Index:
+
+- in the same workspace we last created, he added ejs
+
+- npm i ejs
+
+- now set the view engine
+
+- app.set('view engine', 'ejs' );
+
+- under the app.use(express.json) is where he put it
+
+- now make a views directory
+
+- mkdir views
+
+- do that in the main workspace folder
+
+- nodemon index.js to start the server
+
+- now set the views directory
+
+- const path = require('path');
+
+- app.set('views', path.join(__dirname, 'views'));
+
+- this helps us make sure we're doing an absolute path
+
+- we'll start by making the first get route for comments
+
+- we don't have any comments yet, so we'll fake it in an array
+
+- add > const comments = [
+{
+username: 'Todd',
+comment: 'Lol that is so funny'
+},
+{
+username: 'Skyler',
+comment: 'I like to go bird watching with my dog'
+}
+]
+
+and any other username, comments you want. He added this in index.js
+under the app.set('view engine', 'ejs')
+
+
+- now we need to render all of these in a template
+
+- he sets up his /comments route
+
+- app.get('/comments', (req, res) => {
+res.render('comments/index')
+})
+
+- now makes a comments folder in views directory
+
+- inside of comments he makes an index.ejs
+
+- he uses index as the name because it will show all of a certain resource
+
+- add standard html to views/comments/index.js and make the title Comments Index
+
+- add an h1 with innerText - Comments
+
+- localhost:3000/comments - see what happens and see if it works
+
+- It should show the comments h1
+
+- now let's pass through all of the comments
+
+- app.get('/comments', (req, res) => {
+res.render('comments/index', { comments })
+})
+
+- notice the addition of the comments object in the res.render
+
+- now we have access to these in our template
+
+<!-- 
+    <ul>
+    <% for(let c of comments) {%>
+<li>
+    <%=c.comment%> - <b><%=c.username%></b>
+    <a href="/comments/<%= c.id %>">details</a>
+</li>
+<% }%>
+</ul> 
+-->
+
+- use that to loop over all of the comments
+
+- see if that worked in the browser
+
+- this was our basic index route
+
+
+
+
+
+RESTful Comments Create/New:
+
+- we need to set up two routes, one to serve the form itself, just a
+view that is a form
+
+- we'll often call this the new route
+
+- add under the app.get('/comments')
+
+app.get('/comments/new', (req, res) => {
+res.render('comments/new')
+})
+
+- the reason we need two routes is because our form needs to submit somewhere
+and needs to send the data as a post request
+
+- so we have the get request just to give us the form
+
+- then when you submit the form it sends the data as a
+post request to a different path where it's processed and added
+to the comments array
+
+- so now we need to make new.ejs in the comments directory
+
+- see the new.ejs in the RESTDemo folder
+
+- the data will be sent under the name attribute of the input
+when the post request is sent
+
+- so if you do localhost:3000/comments/new it should show the make
+a new comment h1 and the input
+
+- we need this form to submit somewhere, right now there is nowhere for it
+to send data to, and it will default as a get request
+
+- notice how if you fill out the form and submit it will show in the url right now
+
+- we need to make a post route where this data can be submitted
+
+- app.post('/comments', (req, res) => {
+console.log(req.body)
+res.send('It worked!')
+})
+
+- add that under the app.get('/comments/new')
+
+- use the console.log to test that it works
+
+- make sure the form action attribute sends to the route we just made
+
+- form action="/comments" method="post"
+
+- test it in the browser, see if the data made it through in the console
+
+- now we need to create a comment
+
+- we already have the req.body in the console.log, so we
+could just extract the data from there and push it onto the array,
+but there could be other stuff in that comment that we don't want.
+So we won't use that. We'll destructure it.
+
+- app.post('/comments', (req, res) => {
+const { username, comment } = req.body;
+res.send('It worked!')
+})
+
+- now lets add them to the array of comments with the push
+
+app.post('/comments', (req, res) => {
+const { username, comment } = req.body
+comments.push({ username, comment })
+res.send('It worked!')
+})
+
+- to extract the username, and comment
+
+- try it in the browser by submitting the form with random info
+
+- now send a get request to /comments by just typing
+localhost:3000/comments
+
+- it should be added to the end of the array
+
+
+
+
+
+Express Redirects:
+
+- now if you refresh the page it'll ask if you want to resend the
+post request, if you click ok it'll send another request with the
+same information
+
+
+- normally, we don't want to do that
+
+- instead of rendering something directly from our post route, we're going
+to redirect a user somewhere
+
+- what we're gonna do is redirect a user back to our index, where all
+of the comments are, that way they can see the comments we've created
+
+- so how do we do that?
+
+- express gives us a way with the response object, there's a method
+in it called redirect(); and it just redirects to a url that we specify
+
+- status codes that start with a 3, are redirect status codes
+
+- the default status code when a redirect is run is a 302
+
+- so let's make a res.redirect(); when a user makes a new comment
+
+- app.post('/comments', (req, res) => {
+const { username, comment } = req.body;
+comments.push({ username, comment })
+res.redirect('/comments');
+})
+
+- the redirect argument is '/comments' meaning that that is
+where we want it to redirect the user when it is run
+
+- it will default as a redirect to a get, so we don't need
+to specify a redirect to get/comments
+
+- so go back to the form, and type in some info and submit
+
+- it'll send a post request, and then redirect to /comments
+and show all the comments
+
+- if you go back and submit it again, and check the network in
+chrome dev tools
+
+- you'll see that two things happened, you'll have the first response,
+a 302 status code, and then the get request to /comments
+
+- now he added the a tag at the bottom of the ul in index.ejs
+
+- then in new.ejs he made an a tag in case you don't want to make
+a new comment
+
+- he put it at the bottom of the form
+
+
+
+
+
+
+RESTful Comments Show:
+
+- now we'll implement a 'show' route or some people call it
+a 'detail' route
+
+- basically it's information about one particular resource
+
+- the way this route works, is we need a unique identifier for
+a resource, like an id
+
+- we don't have that yet because we only have username, and comment
+so what if we have multiple comments from one user
+
+- what we'll do is take that id/url and find req.param and look
+up the corresponding comment
+
+- so to make this ourselves
+
+- under the app.post('/comments')
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+})
+
+- now for the example he just hard-coded some id's in index.js
+
+- now let's use that to get the correct comment from the array
+
+- the easiest way to do that is to use the array method find();
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+comments.find(c => c.id === id)
+})
+
+- now there will be an issue because the const { id } is coming from
+the req param, it will be a string
+
+- so we need to convert it to and integer
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+comments.find(c => c.id === parseInt(id))
+})
+
+- so this should return some comment, and he saves it to
+a variable
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+const comment = comments.find(c => c.id === parseInt(id))
+})
+
+- so for now he said we aren't handling errors
+
+- now we need to render a page when we get a commment back
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+comments.find(c => c.id === parseInt(id))
+res.render('comments/show')
+})
+
+- doesn't have to be /show, can call it whatever you want
+
+- this would be like the show page
+for a single reddit post
+
+- we're just faking it since we really don't have
+anything else to display other than what
+we already are showing with our fake data
+
+- now he makes the show.ejs page
+
+- now we need to take the comments we've found
+and pass it through
+
+- app.get('/comments/:id', (req, res) => {
+const { id } = req.params;
+comments.find(c => c.id === parseInt(id))
+res.render('comments/show', { comment })
+})
+
+<!-- - now he adds the <%= comment.id %> in the h1 -->
+
+- with the comment text in an h2 below it with the comment author
+
+<!-- - <%= comment.comment %> - <%= comment.username %> -->
+
+- then the anchor tag that goes back to the index /comments
+
+- now he wants to make each comment a link to go to the show
+page because we can't expect people to know the id, or type
+it in the url
+
+- so in index.ejs he make the a tags now
+
+<!-- - he makes the href go to the /comments/<%= c.id %> which dynamically
+adds the id  -->
+
+
+
+
+
+
+The UUID Package:
+
+- this is a popular package to get a unique id for data
+
+- Universally Unique identifier
+
+- it's an npm package, need to download it then require it
+
+- npm i uuid
+
+- in index.js: const { v4: uuid } = require('uuid');
+
+- now in all the const comments, he changes the value of
+the id's to call/create a unique id like this: id: uuid(), and
+adds it to the app.post so when we make a new comment, it
+will make a new id for it
+
+<!-- - app.post('/comments', (req, res) => {
+    const { username, comment } = req.body;
+    comments.push({ username, comment, id: uuid() })
+    res.redirect('/comments');
+    }) -->
+
+- we no longer want to call parseInt on the app.get because
+the uuid function doesn't give us an integer, we can now just take the
+string id from the params and find in our array any comment
+or the first comment that matches the id string
+
+- go to the url localhost:3000/comments and see if it works
+
+- inspect one of the href's and see if it made an id
+
+- now we have our show route complete
+
+
+
+
+
+
+RESTful Comments Update:
+
+- we don't need to edit the username or id, because that is
+unlikely in the real world, but we do want to make it where we
+can edit a comment
+
+- the path is going to be comments/:id, so we need the id
+but the path is going to be a PATCH request
+
+- What is PATCH? PUT and PATCH are both http verbs that have
+to do with updating something. But PUT request is going to
+completely update an entire thing. Basically replaces it. A
+PATCH request is used to partially modify something, which is
+what we need because we want to keep the username and id the same
+
+- let's set up our patch route
+
+- app.patch('/comments/:id', (req, res) => {
+res.send('Updating something')
+})
+
+- he just used that res.send to test if it works
+
+- he goes to postman, and types in the url/comments/madeUpID, and
+makes it a patch request in postman, and should see the message appear
+
+- so if we actually want to update a comment, we need to take the id
+
+- app.patch('/comments/:id', (req, res) => {
+const { id } = req.params;
+})
+
+- find the comment that we currently have
+
+- app.patch('/comments/:id', (req, res) => {
+const { id } = req.params;
+const comment = comments.find(c => c.id === id);
+})
+
+- then we need to update that comment based upon some payload
+that was sent in the request body
+
+- he just selects body in postman with the last url he used to test this
+
+- he types comment in the body input thing in postman in the key,
+and 'i love you man so much' in the value
+
+- back in index.js he comments out the const comment, and
+console.log's to test
+
+- app.patch('/comments/:id', (req, res) => {
+const { id } = req.params;
+console.log(req.body.comment)
+})
+
+- then adds res.send('all good'), under the console log
+
+- now he goes to postman and runs it again, and in the terminal
+it printed the i love you man comment
+
+- now he saves the new comment to a variable
+
+- app.patch('/comments/:id', (req, res) => {
+const { id } = req.params;
+const newCommentText = req.body.comment;
+const foundComment = comments.find(c => c.id === id)
+foundComment.comment = newCommentText;
+})
+
+- we don't want to respond with content from a patch route, so he
+adds this to the app.patch, uses a redirect
+
+- app.patch('/comments/:id', (req, res) => {
+const { id } = req.params;
+const newCommentText = req.body.comment;
+const foundComment = comments.find(c => c.id === id)
+foundComment.comment = newCommentText;
+res.redirect('/comments')
+})
+
+- now he, goes to the browser and selects a single
+comment to go to the show page, and get the id,
+he copies the url to get that id, goes to postman and
+pastes the url
+
+- he sends it as a get request
+
+- we should get back the show page
+
+- now if you send it as a patch request, go to the body,
+and he changes the comment value to 'meow meow meow'
+
+- he sends the request in postman, now he goes back to the
+index /comments in the browser and it changed the comment
+to meow meow meow
+
+
+
+
+
+
+Express Method Ovverride:
+
+- we want a form that a user can fill out to edit a comment, but there's
+a problem, html forms can only send get or post requests, so we
+have to fake it, and that's what we'll do here
+
+- so let's make a route to serve the form, we need to know the id
+of the comment, we'll use the pattern '/comments/:id/edit' as a get
+request
+
+- app.get('/comments/:id/edit' (req, res) => {
+const comment = comments.find(c => c.id === id); // to find a comment based on the id
+res.render('comments/edit', { comment }); // render a template w/ the form and passes in the comment
+})
+
+- now he makes the form/template, names it edit.ejs
+
+- go look at it for reference
+
+- he added /edit in the url at the end after the id in the show page, and it
+said id isn't defined. We have to get the id from req.params
+
+- app.get('/comments/:id/edit' (req, res) => {
+const { id } = req.params;
+const comment = comments.find(c => c.id === id); // to find a comment based on the id
+res.render('comments/edit', { comment }); // render a template w/ the form and passes in the comment
+})
+
+- now he tries it and clicks on an id to go to the show page, the adds
+/edit to the url and it should work
+
+- now we want to prefill the text area with the current comment
+
+<!-- - <%= comment.comment %> in the textarea to get the prefill text -->
+
+<!-- - now he makes the a tag to edit the comment with the href '/comments/<%=comment.id%>/edit' -->
+<!-- so we don't have to keep typing edit in the url to edit -->
+
+- go to the browser and check the edit link
+
+<!-- - make the form action submit to the right url, '/comments/<%=comment.id%>/edit' -->
+<!-- but since we can't send a patch request with the form, how can we make this work  -->
+
+- we make it work with method ovverride
+
+- npm i method-override
+
+- now we need to use it
+
+- we're going to use the query value
+
+- we need to call this method
+
+- import it in index.js
+
+- const methoOverride = require('method-override')
+
+- now call app.use
+
+- app.use(methodOverride('_method')) // provide the string we're looking for in the query string, in the example it
+'_method'
+
+- now in the template edit.ejs, we need to add that on to the end of the action
+
+<!-- 
+
+- action="/comments/<%=comment.id%>/edit?_method=PATCH" method="post" 
+
+-->
+
+- makes the method a post request because that is how the methodOverride method
+works
+
+- now go to the index page in the browser and try to edit a comment
+
+- it'll show an error saying cannot patch, that's because
+the form that we submitted is going to /edit, it shouldn't be
+going there
+
+<!-- 
+    
+- so he makes it: action="/comments/<%=comment.id%>?_method=PATCH"
+
+-->
+
+- now try to edit a comment again, should work
+
+
+
+
+
+
+
+RESTful Comments Delete:
+
+- going to use methodOverride method again
+
+- we'll use the same route: /comments/:id
+
+- but the http verb will be delete
+
+- next to edit in the show page, we want to add a delete button, and
+make a form that doesn't have any inputs, just a button to submit it that
+will delete the comment
+
+- so in index.js he adds
+
+- app.delete('/comments/:id', (req, res) => {
+const { id } = req.params; // taking the id from the path to lookup the id
+comments = comments.filter(c => c.id !== id); // filter where the id is not equal to the id that was in the route
+})
+
+- comments.filter returns a new array, so he updates the comments variable to be this new array
+
+- now he changes the const to let for the comments array, because we would
+run into issues changes the const variable with the filter method
+
+- now we need to redirect, basically anything that's not a get route, you'll
+want to redirect
+
+- so redirect back to the index
+
+- app.delete('/comments/:id', (req, res) => {
+const { id } = req.params;
+comments = comments.filter(c => c.id !== id);
+res.redirect('/comments');
+})
+
+- now we need to make the form
+
+<!-- 
+    
+- so he makes a form in show.ejs with the action="/comments/<%+comment.id%>/_method=DELETE" method="post"
+
+-->
+
+- now he just made the delete button inside the form to submit it
+
+- now test it in the browser, should work
+
+- should have full CRUD implemented now
+
+
+
+
+
+
+RESTful routes gameplan:
+
+NAME: PATH: VERB: PURPOSE:
+Index /comments GET Display all comments
+New /comments/new GET Form to create new comment
+Create /comments POST Creates new comment on server
+Show /comments/:id GET Details for one specific comment
+Edit /comments/:id/edit GET Form to edit specific comment
+Update /comments/:id PATCH Updates specific comment on server
+Destroy /comments/:id DELETE Deletes specific item on server

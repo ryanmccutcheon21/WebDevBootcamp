@@ -1,0 +1,354 @@
+What Matters?
+
+Crucial:
+
+- Authentication vs. Authorization
+- How to (not) Store Passwords
+- Working with Bcrypt
+
+
+Important:
+
+- Auth Demo
+- Understanding Hashing Functions
+Password Salts
+
+
+
+
+
+Authentication vs. Authorization:
+
+- Authentication is the process of veryfying who a particular user is 
+
+- we typically authenticate with a username/password combo, but we can
+also use security questions, facial recognition, etc. 
+
+- Authorization is veryfying what a specific user has access to 
+
+- generally, we authorize after a user has been authenticated. 
+
+
+
+
+
+How to (not) store passwords:
+
+- Rule #1: never store passwords as text
+
+- rather than storing a password in the database, we run the password
+through a hashing funciton first and then store the result in the 
+database
+
+- hashing funcitons are funcitons that map input data of some 
+arbitrary size to fixed-size output values 
+
+
+
+
+
+
+Cryptographic Hashing Functions:
+
+1. One-way function which is infeasible to invert
+2. Small change in input yields large change in the output 
+3. Deterministic - same input yields same output 
+4. Unlikely to find 2 outputs with same value 
+5. Password Hash Functions are deliberately SLOW 
+
+
+
+
+
+Password Salts:
+
+- "Salting" is an extra step we take when hashing a password to make 
+it harder to reverse-engineer
+
+- to prevent hackers from brute forcing their way into user's accounts, by 
+using the top passwords and just mapping their corresponding hashes
+to compare to the database if they know what function we use to hash 
+such as Bcrypt. Then comparing their mapped hashes to the one's in 
+the database for the users until they have a match 
+
+- to prevent this, we use salts. A salt is a random value added to the 
+password before we hash it 
+
+- it helps ensure unique hashes and mitigate common attacks 
+
+
+
+
+
+
+Intro to Bcrypt:
+
+- two different packages: bcrypt.js, and bcrypt(node.bcrypt.js) 
+
+- bcrypt.js is written entirely in JavaScript, which means it can 
+run on the client side as well 
+
+- bcrypt doesn't work in the browser, it's made for node.js(server-side JavaScript),
+it's built on top of C++, making it a little bit faster 
+
+- in BcryptDemo, bcrypt.genSalt(10); // generates salt to our password
+the number is the number of rounds (the amount of time) it takes to 
+hash a password. Sweet spot is 250ms. The lower the number, the faster 
+the hashing will occur. Recommended number is around 12.
+
+- once we've generated a salt, we'll call bcrypt.hash(pw, salt) // pw 
+is what we passed into the function, and salt is what we generated
+
+- bcrypt has a method called compare, that we can use to automatically 
+take a hash, figure out what the salt was, and compare if the password matched 
+
+- compare expects us to pass in the plain text password and the salt 
+
+- he used pw, and hashedPw in the example. hashedPw represents what's in our 
+database
+
+- the hash method will do salt for us. Takes two parameters, the plain 
+text password, then you pass in the number of rounds 
+
+
+
+
+
+
+Auth Demo Setup:
+
+- see the AuthDemo
+
+- to create the app create directory and cd into it:
+
+- npm init -y 
+
+- npm i express ejs mongoose bcrypt
+
+- touch index.js 
+
+- mkdir views
+
+- mkdir models
+
+- cd models 
+
+- touch user.js 
+
+- in user.js, require mongoose, then make user Schema 
+
+- make sure username, and password are required 
+
+- then create model 
+
+- go to index.js: require express, require your model, 
+add in the app.listen etc. 
+
+- first basic route he makes is /secret 
+
+
+
+
+Auth Demo Register:
+
+- then he makes the /register route 
+
+- app.use(express.urlencoded({ extended: true })); // parses the request 
+and gives us access to req.body in our get and post requests 
+
+- look at his app.post('/register')
+
+- he destructures password and username, then he uses const hash 
+to save the password to a variable, and awaits bcrypt.hash(password, 12);
+12 is the number of rounds 
+
+- now we'll store the hashed password in the database 
+const user = new User({
+    username,
+    password: hash
+})
+await user.save();
+res.redirect('/');
+
+
+
+
+
+
+Auth Demo Login:
+
+- now we need to implement login functionality 
+
+- he makes an app.get('/login')
+
+- then makes a template for login 
+
+- notice how both forms in the templates method=POST 
+
+- in app.post('/login'), we need to find the user with their username 
+
+- he uses, User.findOne({ username }); and saves it to the variable,
+const user and awaits it 
+
+- then makes the if statement to tell the user if the username is incorrect, 
+but you don't want to tell them what is wrong so another person can get 
+a hint to hack someone's account, just tell them it is incorrect 
+
+- so we need to compare the password in req.body to the hashed password on 
+this user 
+
+- bcrypt.compare(password, user.password); // password is coming from 
+req.body, then saves it to const validPassword 
+
+- then makes an if statement to respond to a valid password 
+
+
+
+
+
+
+Auth Demo Staying Logged In with Session:
+
+- we use session to be able to hide the /secret route unless someone 
+is successfully logged in 
+
+- he installs session here 
+
+- npm i express-session 
+
+- then imports it in index.js 
+
+- now does app.use(session({secret: 'notagoodsecret'}));
+
+- in /login in the if statement, he adds req.session.user_id = user._id 
+
+- so if a user successfully logs in, we'll now store their user_id in 
+the session 
+
+- he also adds that to the /register 
+
+- in /secret, he adds the if statement to say if there isn't a req.session.user_id,
+then we'll redirect the person to /login 
+
+
+
+
+
+
+Auth Demo Logout:
+
+- all we need to do to log someone out, is get rid of the session user_id 
+
+- to logout, we'll remove req.session.user_id, or set its value to null 
+
+- we need to write a route to do that, genrally should be a post route 
+
+- he makes /logout now 
+
+- inside that route, it's just a matter of doing a simple,
+req.session.user_id = null;
+
+- and then do a redirect 
+
+- now we need to make our form template to send a post request to /logout 
+
+- another option for logging out would be to destroy the session entirely,
+using a method called destroy like this: req.session.destroy();
+
+
+
+
+
+
+Auth Demo Require Login Middleware:
+
+- we're gonna write a simple middleware that will help us verify if 
+someone is logged in or not, because a lot of the time what we want 
+is to protect multiple endpoints 
+
+const requireLogin = (req, res, next) => {
+    if(req.session.user_id) {
+        return res.redirect('/login');
+    }
+    next();
+}
+
+- if req.session.user_id doesn't exists, then we will redirect to 
+/login, otherwise, we'll call next  
+
+- now he applies that to /secret by adding it as an argument to the 
+app.get 
+
+
+
+
+
+
+Auth Demo Refactoring to Model Methods:
+
+- another thing we can do to just refactor things, and make them a 
+little bit better is to take as much code out of the route handler 
+itself as possible 
+
+- he makes a new method to find a username and validate in one step 
+instead of two like we had it 
+
+- in the model folder, in user.js, he adds:
+
+userSchema.statics.findAndValidate = async function(username, password) {
+    const foundUser = await this.findOne({ username });
+    const isValid = await bcrypt.compare(password, foundUser.password);
+    return isValid? foundUser : false;
+}
+
+- on the userSchema we can access .statics, statics is where we can 
+define multiple methods that will be added to the user class itself,
+to the model, not to particular instances of user 
+
+- .findAndValidate is the method that we created to add onto .statics 
+
+- "this" refers to the particular schema, which is user in this case 
+
+- we're comparing the password that is entered, to the password that 
+was stored on foundUser
+
+- also need to make sure bcrypt is required in this file 
+
+- returns foundUser if isValid is true, and false if not 
+
+- now we can add this middleware in index.js in the /login route 
+
+- he saves it to const foundUser 
+
+- another change we could make is when we register someone, we are 
+actually hashing their password first, then we are taking that and 
+adding it in to the new user, then saving 
+
+- what we could do instead, is to let mongoose and the model actually 
+set the hash password for us, then we could instead make a user, 
+pass in the password, then call save and have our model use a middleware
+that says hang on, right before we save, we're gonna hash the password
+then update the password to just be the hashed version 
+
+- to do this:
+
+- in user.js he adds middleware: 
+userSchema.pre('save', async function(next){
+    if(!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+});
+
+- runs before a user is saved 
+
+- 'this' refers to the particular instance of the user, the particular model 
+
+- next in this case is going to be save, it's going to call save from 
+pre('save')
+
+- this.isModified is used to make sure that the password is only hashed 
+when the password is modified, that way if a user changes their username, 
+it doesn't rehash the password unnecessarily 
+
+- the if statement means, if the password isn't modified, just 
+return next() 

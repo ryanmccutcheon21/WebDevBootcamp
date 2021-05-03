@@ -1,0 +1,785 @@
+What Matters?
+
+Crucial:
+
+- The Role of ORM/ODM's
+- Connecting Mongoose to Mongo
+- Defining a Model
+- Mongoose CRUD
+- Schema Constraints
+
+
+
+Important:
+
+- Model Instance & Static Methods
+- Mongoose Middleware
+
+
+Nice to have:
+
+- Mongoose Virtuals
+
+
+
+
+
+What is Mongoose?
+
+- A way to connect MongoDB with node.js
+
+- it is an ODM, Object Data Mapper
+
+- maps documents coming from MongoDB into usable JS objects
+
+- provides ways for us to model out our application data
+and define a schema.
+
+- Offers easy ways to validate data and build complex queries
+from the comfort of JS
+
+
+
+
+
+
+Connecting Mongoose to MongoDB:
+
+- its just an npm package
+
+- for this example we won't work in an Express app, then
+later we'll use them together
+
+- so in a fresh terminal window, in a folder he named
+"MongooseBasics"
+
+- npm init -y
+
+- npm i mongoose
+
+- touch index.js
+
+- in index.js require mongoose
+
+- const mongoose = require('mongoose');
+
+- now let's get mongoose to connect to our MongoDB server
+
+- in the mongoose docs you can see how to do this
+
+- mongoDB's default port is 27107, which you'll see in the
+mongoose docs on how to connect to MongoDB
+
+- under the const mongoose in index.js
+
+- mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true});
+
+- so as you can see it's connecting to mongoDB's port, and it's also
+connecting to the test database right now
+
+- so let's work with a movies database
+
+- mongoose.connect('mongodb://localhost:27017/movieApp', {useNewUrlParser: true, useUnifiedTopology: true});
+
+- we haven't made that database yet, but we will
+
+- go to the terminal and type: nodemon index.js
+
+- should be a square at the bottom showing a server has started
+or something has started
+
+- to test if it's connected, see the mongoose docs, under connections
+
+- we can use a .then and catch to test for errors and function/connection
+of the server
+
+- mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true});
+.then(() => {
+console.log("connection open")
+})
+.catch(err => {
+console.log('oh no, error')
+console.log(err)
+})
+
+
+
+
+
+
+Our First Mongoose Model:
+
+- models are just JS classes, that represent information in
+a MongoDB database
+
+- go to mongoose docs under API Model to see a list of different
+methods that mongoose models have access to
+
+- first thing we do making a model, is to define a schema
+
+- a schema is a mapping of different collection keys from Mongo,
+to different types in JS
+
+- he did this in index.js
+
+- {
+title: 'Amadeus',
+year: 1986,
+score: 9.2,
+rating: 'R'
+}
+
+- this isn't a schema, it's just an example of what we might
+want to define for a movie, so to define a schema
+
+- we want title to be a string, year and score to be numbers,
+rating to be a string etc.
+
+- so define the schema
+
+- const movieSchema = new mongoose.Schema({
+title: String,
+year: Number,
+score: Number,
+rating: String
+})
+
+- don't leave the example from before in index.js if you typed
+it in
+
+- now we need to take this schema, and tell mongoose that
+we want to make a model using that schema
+
+- we pass in a string containing the name of the model, then after
+we pass in the name of the schema. The name is important, it needs
+to be singular, and start with an uppercase. Mongoose will take it,
+and create a collection for us, in our case the collection will be called
+'movies'. Notice how it makes it plural
+
+- const Movie = mongoose.model('Movie', movieSchema)
+
+- now we have a model class called Movie
+
+- doesn't do anything yet with our db
+
+- we can make instances of the movie class now though and save
+them to the MongoDB database
+
+- const amadeus = new Movie({ title: 'Amadeus', year: 1986, score: 9.2, rating: 'R'})
+
+- doesn't make anything that has to do with our database just yet, but
+does make a new instance of Movie
+
+- he goes to the terminal to show us
+
+- node
+
+- .load index.js
+
+- now we can access amadeus
+
+- amadeus // in terminal
+
+- if you go to the Mongo shell right now though, nothing has
+been created just yet
+
+- mongo
+
+- use movieApp
+
+- db.movies.find() // there's nothing in there yet
+
+- amadeus.save() // saves amadeus to the database
+
+- it returns a promise
+
+- db.movies.find() // should have amadeus in the collection now
+
+- if you want to change something
+
+- amadeus.score = 9.5 // in the terminal
+
+- that has nothing to do with the MongoDB
+
+- we've just changed something in JS land, in mongoose
+
+- to save it to the database
+
+- amadeus.save()
+
+- should make the change to amadeus now
+
+
+
+
+
+Insert Many:
+
+- let's insert a bunch of movies that we can play with now
+
+- in index.js
+
+- Movie.insertMany([
+{ title: 'Amelie', year: 2001, score: 8.3, rating: 'R'},
+{ title: 'Alien', year: 1979, score: 8.1, rating: 'R'},
+{ title: 'The Iron Giant', year: 1999, score: 7.5, rating: 'PG'},
+{ title: 'Stand By Me', year: 1986, score: 8.6, rating: 'R'},
+{ title: 'Moonrise Kingdom', year: 2012, score: 7.3, rating: 'PG-13'},
+])
+.then(data => {
+console.log('it worked')
+console.log(data)
+})
+.catch(err => {
+console.log('error')
+console.log(err)
+})
+
+- in terminal
+
+- node index.js
+
+- should get all our movies back
+
+- in mongo shell
+
+- db.movies.find()
+
+- should have the movies in there as well
+
+
+
+
+
+Finding with Mongoose:
+
+- multiple methods, but we'll start with .find()
+
+- in terminal
+
+- node
+
+- .load index.js
+
+- Movie.find({}) // to find all of them
+
+- returns a thenable query object with a lot of information
+that we may not need
+
+- so we can chain on .then to get the info we want
+
+- Movie.find({}).then(data => console.log(data)) // in the terminal
+
+- now we should just get the info we want
+
+- find more recent movies use this
+
+- Movie.find({year: {$gte: 2010}}).then(data => console.log(data))
+
+- the exec method is going to give us a give us a full promise, a
+real promise, not a thenable object
+
+- see mongoose docs to read more about .exec() which goes at the end like
+we just were using .then
+
+- let's find something by id now
+
+- Movie.findById('5f3e0c2d838e3725b55202c7').then(m => console.log(m))
+
+- he just copy and pasted an id from the database to use in the example
+
+
+
+
+
+
+Updating in Mongoose:
+
+- Movie.updateOne({title: 'Amadeus'}, {year: 1984}).then(res => console.log(res))
+
+- that is saying the movie with title amadeus, update the year to 1984
+
+- Movie.updateMany({title: {$in: ['Amadeus', 'Stand By Me']}}, {score: 10}).then(
+res => console.log(res))
+
+- should get a promise saying nModified: 2 etc.
+
+- Movie.findOneAndUpdate({title: 'The Iron Giant'}, {score: 7.0}).then(m =>
+console.log(m))
+
+- we get back the data, with the old version of the data, but
+it did update if you go check it in the database
+
+- if we want the new updated version to be returned, we have to
+specify an option as the third argument
+
+- Movie.findOneAndUpdate({title: 'The Iron Giant'}, {score: 7.8}, {new: true}).then(m =>
+console.log(m))
+
+- should get the new updated version now, he also changed the score to 7.8 just
+to show that it changes cause it was 7.0
+
+
+
+
+
+
+Deleting with Mongoose:
+
+- two groups of methods we can use
+
+- remove() // doesn't give us back any information except for the deleted count
+
+- delete() // shows us what was deleted
+
+- let's delete stuff to see
+
+- Movie.remove({title: 'Amelie'}).then(msg => console.log(msg))
+
+- just tells us something was deleted, and get a message saying we should
+use deleteOne or deleteMany instead cause they are newer methods
+
+- Movie.deleteMany({year: {$gte: 1999}}).then(msg => console.log(msg))
+
+- gives us a delete count, no info on what was deleted
+
+- to get data back on what was deleted use
+
+- Movie.findOneAndDelete({title: 'Alien'}).then(m => console.log(m))
+
+- should get data back showing the movie we just deleted
+
+
+
+
+
+
+Mongoose Schema Validations:
+
+- he's gonna make a new file, and new made to illustrate this
+
+- he's still in 'MongooseBasics' folder
+
+- touch product.js
+
+- see the folder in web dev bootcamp for these examples instead
+of making it yourself
+
+- don't need to nest all of our code in the mongoose.connect function
+because of the way mongoose works. that's why we have the stuff
+running at the bottom in index.js and product.js outside of the connect
+function
+
+
+- he added shopApp to the connect function in product.js
+
+- then made the productSchema
+
+- const productSchema = new mongoose.Schema({
+name: String,
+price: Number
+})
+
+- that's the shorthand way of doing it, there's a reason to
+use the longhand for some uses
+
+- looks like this
+
+- const productSchema = new mongoose.Schema({
+name: {
+type: String
+}
+price: {
+type: Number}
+})
+
+- this syntax allows us to add additional information
+
+- including some of the built in Mongoose validations, like we
+can require them, meaning they have to be there when you make a
+new instance of the model, in our example, making a new product
+
+- const productSchema = new mongoose.Schema({
+name: {
+type: String,
+required: true
+}
+price: {
+type: Number},
+required: true
+})
+
+- now he adds a model in product.js
+
+- const Product = mongoose.model('Product', productSchema);
+
+- now lets try creating a new product
+
+- const bike = new Product({name: 'Mountain Bike', price: 599})
+
+- now he adds the bike.save to save it
+
+- if we didn't have name, or price, or one of the types
+that we specified is wrong it would throw an error because
+they are required properties of a certain type
+
+- if we add additional properties, it won't throw an error, but
+it won't show in what is returned in the console, it will ignore
+what we included. He added color: 'red' to show this
+
+
+
+
+
+
+Additional Schema Constraints:
+
+- go to the mongoose docs > guides > schema types
+
+- look at schema type options
+
+- can set default types among other things but he uses default example
+
+- const productSchema = new mongoose.Schema({
+name: {
+type: String,
+required: true
+}
+price: {
+type: Number,
+required: true
+},
+onSale: {
+type: Boolean,
+default: false
+}
+})
+
+- if no value is given for onSale, it will default to false
+
+
+
+
+
+
+Validating Mongoose Updates:
+
+- if we try to update the product with information that doesn't
+conform to our constraints, the constraints won't work
+
+- like how he did the findOneAndUpdate with name: 'Tire Pump'
+in product.js
+
+- we have to tell mongoose to apply our validations
+
+- set runValidators to true to do this. See his product.js code
+
+
+
+
+
+Mongoose Validation Errors:
+
+- we'll set up custom validation error messages in this example
+
+- see how he did this in the price property in product.js
+
+const productSchema = new mongoose.Schema({
+name: {
+type: String,
+required: true,
+maxlength: 20
+},
+price: {
+type: Number,
+required: true,
+min: [0, 'Price must be positive ya dodo!']
+},
+onSale: {
+type: Boolean,
+default: false
+},
+categories: [String],
+qty: {
+online: {
+type: Number,
+default: 0
+},
+inStore: {
+type: Number,
+default: 0
+}
+},
+size: {
+type: String,
+enum: ['S', 'M', 'L']
+}
+
+});
+
+
+
+- enum: Array, creates a validator that checks if the value
+is in the given array
+
+
+
+
+
+
+Model Instance Methods:
+
+- see mongoose docs > instance methods
+
+- want to use a traditional function because the value of
+"this" can change
+
+- productSchema.methods.greet = function() {
+console.log("hello, how are you?")
+}
+
+- now he goes to the terminal
+
+- node
+
+- .load product.js
+
+- const p = new Product({name: 'bike bag', price: 10})
+
+- now we have p, which is an instance of product, so let's try
+to call p.greet
+
+- p.greet()
+
+- should say 'hello, how are you?'
+
+- now he makes a useful function to find a product
+
+- const findProduct = async () => {
+const foundProduct = await Product.findOne({name: 'Bike Helmet'});
+foundProduct.greet();
+}
+
+- made this an async function, so need to await foundProduct before
+running foundProduct to make sure it finds a product before running
+so it can call the greet() function
+
+- go to terminal
+
+- control + C
+
+- node product.js
+
+- should get message saying connection open and hello, how are you?
+
+- he gets rid of the greet method now because he was just using
+it to show us examples
+
+- now he makes a method to toggle the onSale value for products
+
+- productSchema.methods.toggleOnSale = function () {
+this.onSale = !this.onSale;
+return this.save();
+}
+
+- now he awaits that function in const findProduct, then console.log's it
+
+- now he makes the addCategory function to make it easy to add a category
+
+- see it in the product.js
+
+- notice how he awaits it in findProduct
+
+- now let's try it
+
+- go to terminal
+
+- quit, and restart it
+
+- node product.js
+
+
+
+
+
+
+Adding Model Static Methods:
+
+- methods that live on the model itself, not on instances of the model
+
+- 'this' refers to the model class itself, not individual instances
+
+- we call it on the Model
+
+- example:
+
+- productSchema.statics.fireSale = function () {
+return this.updateMany({}, {onSale: true, price: 0})
+}
+
+- updates everything with the empty brackets, and sets onSale to true
+and price to be 0
+
+- he just returns it so we can await it somewhere instead of awaiting
+it in the function
+
+- so now we'll call fireSale, which is a method on Product
+
+- Product.fireSale().then(res => console.log(res))
+
+- run it in terminal
+
+- node product.js
+
+- db.products.find()
+
+- all products should have a price of 0, and show onSale to be true
+
+
+
+
+
+
+Mongoose Virtuals:
+
+- give us the ability to add properties to a schema that don't
+exist in the db itself, but we have access to thanks to mongoose
+
+- first example:
+
+- see person.js for following code examples
+
+- copies and pastes the mongoose connection stuff at the top
+and leaves it at the same database /shopApp
+
+- makes the const personSchema schema
+
+- on the personSchema we can define virtual, and give it a name,
+he names it fullName, then we define the .get, where we can define
+a setter, and a getter. We're defining a getter, so when we GET fullName
+, when we call .fullName, we want to retrieve a value that is first
+and last name combined with a space in between
+
+- personSchema.virtual('fullName').get(function () {
+return `${this.first} ${this.last}`
+})
+
+- we return a string template literal to get the first and last name
+
+- 'this' refers to the individual person, the instance that we're working
+with
+
+- let's try running this. We need to make our model real quick
+
+- const Person = mongoose.model('Person', personSchema);
+
+- now we have our Person model
+
+- goes to terminal
+
+- quits what we were in
+
+- node
+
+- .load person.js
+
+- let's make a new person and see what we end up with
+
+- const tammy = new Person({first: 'Tammy', last: 'Chow'})
+
+- tammy
+
+- should show and _id and her first and last name
+
+- tammy.fullName
+
+- should return 'Tammy Chow'
+
+- tammy.save()
+
+- go to the mongo shell
+
+- show collections
+
+- should have people, and products
+
+- notice the plurilizations of the names that mongo did for us
+
+- db.people.find()
+
+- we just have first and last, there is no fullName
+
+- it only exists on the mongoose side of things in JS
+
+- we use these if we have some info that we're accessing pretty
+commonly that we could derive from existing data. We could store
+fullName in the database but why? We already have first and last, no
+need to take up more memory when we could just access it virtually
+
+- now we'll define the set function, what this will do is let us
+take the property, the value we're setting for fullName and let us
+update the value for first and last
+
+- make it where if we do this in node shell: tammy.fullName = 'Tammy Xiao'
+it will update what we made her new last name spelling as the value of
+last
+
+
+
+
+
+Defining Mongoose Middleware:
+
+- see mongoose docs about middleware
+
+- can make it where we run a pre- or post- hook before or after
+we run a method like updateOne
+
+- for example, if we want when a person deletes their profile on
+a social site we've made, it run code to delete other things like
+their posts and etc. we can use middleware
+
+- let's do an example with save
+
+- in person.js he makes the personSchema.pre('save', function () {
+
+})
+
+- in order for this to work we have two options, one is to accept a
+parameter, we'll call it 'next', in our callback, and then execute next
+at the very end of our function. Alternatively, we just need to return
+a promise from our function
+
+- both make sure that the code runs in the middle of something, and that
+something continues to run after it
+
+- so we'll use the second option
+
+- personSchema.pre('save', async function () {
+console.log('About to save!!!')
+})
+personSchema.post('save', async function () {
+console.log('Just saved!!!')
+})
+
+- these are two middleware functions, one runs before save,
+and one runs after
+
+- now if we call them in the node shell
+
+- control + C
+
+- node
+
+- .load person.js
+
+- const k = new Person({first: 'Kristen', last: 'Sun'})
+
+- will show undefined cause it has nothing to do with MongoDB
+
+- so call it the save function
+
+- k.save()
+
+- before the save actually occurs we get the 'About to save', then
+it saves, then we get 'Just saved'

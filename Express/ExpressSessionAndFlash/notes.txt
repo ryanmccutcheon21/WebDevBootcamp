@@ -1,0 +1,104 @@
+What Matters?
+
+Crucial:
+
+- Conceptual Overview of Session
+- Setting up Express Session 
+
+
+Important:
+
+- Integrating Flash Messages 
+
+
+
+
+
+Intro to Sessions:
+
+- kind of similar to the idea of cookies in that we are kind of trying 
+to add in some statefulness (how cookies adds statefulness to HTTP
+by having it store some information)
+
+- not very practical, or secure, to store a lot of data client-side 
+using cookies. This is where sessions come in!
+
+- sessions are a server-side data store that we use to make HTTP 
+stateful. Instead of storing data using cookies (in the browser/client-side),
+we store the data on the server-side and then send the browser a 
+cookie that can be used to retrieve the data 
+
+
+
+
+
+Express Sessions:
+
+- need to use the express-session from npm 
+
+- npm i express-session 
+
+- const session = require('express-session');
+
+- app.use(session({ secret: 'thisisnotagoodsecret' })); // in production, want to use 
+an actual secret 
+
+- see the Session_And_Flash > Session Demo to review the code he wrote 
+and what it does 
+
+
+
+
+
+Intro to Flash:
+
+- idea of a flash, a place in the session to flash a message to a 
+user, like a confirmation message. Shows up one time, then goes away 
+
+- it's a node package 
+
+- npm i connect-flash 
+
+- see the Flash Demo code to see this in action 
+
+app.post('/farms', async (req, res) => {
+    const farm = new Farm(req.body);
+    await farm.save();
+    req.flash('success', 'Successfully made a new farm!');
+    res.redirect('/farms')
+})
+
+- notice the req.flash and how it is before the redirect 
+
+
+
+
+res.locals & Flash:
+
+- notice his middleware: app.use((req, res, next) => {
+    res.locals.messages = req.flash(success);
+    next();
+})
+
+- adds on to the response object in such a way that in every single 
+template and view, we'll have access to messages 
+
+- look at the connect-flash docs to read more 
+
+- now instead of using:
+
+app.get('/farms', async(req, res) => {
+    const farms = await Farm.find({});
+    res.render('farms/index', { farms, messages: req.flash('success') })
+})
+
+- we can use:
+
+app.get('/farms', async (req, res) => {
+    const farms = await Farm.find({});
+    res.render('farms/index', { farms })
+})
+
+- we don't have to pass in messages into the get request to use it in 
+the index.ejs, because we already have access to it via the res.locals 
+in the index.js 

@@ -1,0 +1,438 @@
+Configuring Express for EJS:
+
+- cd into desired directory
+
+- npm init -y // this skips all the questions
+
+- npm i express // downloads express to the app
+
+- touch index.js // makes the index.js file
+
+- require express in index.js
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+res.send('Hi');
+});
+
+app.listen(3000, () => {
+console.log('Listening on port 3000.');
+});
+
+- now start it up with nodemon index.js
+
+- go to localhost:3000
+
+- should see 'Hi'
+
+- means it's working
+
+- tell the app to use EJS
+
+app.set('view engine', 'ejs');
+
+- accepts 2 arguments, the key and the corresponding value
+
+- now install ejs from terminal
+
+npm i ejs
+
+- don't need to require ejs in index.js file
+
+- mkdir views
+
+- touch views/home.ejs
+
+- go to home.ejs file in VS Code
+
+- make html with the !
+
+- now make some html elements
+
+- now use the render() method to include the view's rendered html string
+
+app.get('/', (req, res) => {
+res.render('home.ejs');
+});
+
+- dont need to use views/home.ejs because the default
+is to look for the views directory
+
+
+
+
+Setting Up Our Views Directory:
+
+- the default views directory that express is looking for is only
+going to work if you are running your app from within the same
+directory where your views folder is
+
+- change the views directory so you can run it from anywhere
+
+const path = require('path'); // under the other variables
+
+app.set('views', path.join(__dirname, '/views')); // after the other app.set()
+
+- this is taking our current directory name and joining that path
+with /views
+
+
+
+
+
+EJS Interpolation Syntax:
+
+- Templating allows us to define a preset "pattern" for a webpage, that
+we can dynamically modify
+
+- Ex: We could define a single "Search" template that displays
+all the results for a given search term. We don't know what
+the term is or how many results there are ahead of time.
+The webpage is created on the fly
+
+- It's suped up HTML
+
+- EJS homepage, scroll down to see the tags
+
+- these tags indicate to the page that what it's about to see
+isn't HTML, don't treat it as HTML
+
+- <%= with a closing tag and code between it, whatever value is between will be outputted to the template - go to
+    home.ejs - he added <%=4 + 1 + 5 %> inside the h1 tag, which will be treated as
+    JavaScript & replaced with 10 in the template. It's like a string
+    template literal
+
+    - he then installed the ejs extension by clicking the 4 box thing on
+    the left in VS Code and clicking install on the one labeled
+    EJS language su something
+
+    - it will make the syntax highlighted in the ejs file
+
+    - it's just JS in between the tags
+
+
+
+
+    Passing Data to Templates:
+
+    - he defines a simple route in the index.js, the
+    same one from the past ejs lesson
+
+    - adds this above the app.listen(3000)
+
+    app.get('/rand', (req, res) => {
+    res.render('random')
+    })
+
+    - then he makes a random.ejs file in the views directory
+
+    - he made the title Random
+
+    - he added this in the body
+
+    - <h1>
+        <%= Math.floor(Math.random() * 10) + 1 %>
+    </h1>
+
+    - now check the url localhost:3000/rand
+
+    - generally we want our templates to have the least amount
+    of logic possible.
+
+    - so best practice would be to create the random number first,
+    then pass it into our template
+
+    - so he deleted the Math function in the h1 of the ejs file
+    so we can make the function in the index.js
+
+    - app.get('/rand', (req, res) => {
+    const num = Math.floor(Math.random() * 10) + 1;
+    res.render('random')
+    })
+
+    - now pass that variable num through when you render the template
+    by adding a second argument that is a key:value pair in an object
+
+    - he named it rand and set it = to num. Now whatever num is
+    will be available in his template under the name rand
+
+    - app.get('/rand', (req, res) => {
+    const num = Math.floor(Math.random() * 10) + 1;
+    res.render('random', {rand: num})
+    })
+
+    - now in the home.ejs file, he just puts rand in between the EJS
+
+    - <%= rand %>
+
+        - now that object is passed into the ejs
+
+
+
+
+
+
+        <!-- Subreddit Template Demo:
+
+        - want to mimic reddit again
+
+        - in index.js add
+
+        - app.get('/r/:subreddit', (req, res) => {
+
+        })
+
+        - we'll pass through that subreddit from the params when we render our template
+
+        - app.get('/r/:subreddit', (req, res) => {
+        const {subreddit} = req.params;
+        res.render('subreddit', {subreddit})
+        })
+
+        - so we destructured subreddit in the const, then passed it as an
+        object in the second params to pass it through the ejs when it renders
+
+        - now he made a template in the views directory called subreddit.ejs
+
+        - then added the standard html
+
+        - added subreddit in the title with <%= subreddit %>
+
+        - added an h1 with 'Browsing the <%= subreddit %> subreddit' in between minus the ''
+
+        - now type in localhost:3000/r/typewhatever
+
+
+
+
+
+                Conditionals in EJS:
+
+        - this syntax is like the last without the equals sign
+
+        - allows us to add JS without the result being added to the template
+
+        - in the example, he went to localhost:3000/rand and wanted to change
+                the output when it is an even number
+
+        - so he went to the randaom.ejs
+
+        - under the h1 he added
+
+        - <% if(num % 2===0) { %>
+
+            <% } %>
+
+        - now this will run the JS but not render the function in the
+            template, having <%= num %> in the h1 will show the result in
+            the template
+
+        - inside the if statement, if it is an even number he
+        wanted to add an h2 to the html so he added
+
+        - <% if(num % 2===0) { %>
+            <h2>That is an even number!</h2>
+            <% } %>
+
+        - now to make an else statement, he added
+
+        - <% if(num % 2===0) { %>
+            <h2>That is an even number!</h2>
+            <% } else { %>
+            <h2>That is an odd number!</h2>
+            <% } %>
+
+        - now check the localhost:3000/rand
+
+        - another way to do this, add at bottom after <% } %>
+
+        - <h3> The number is:
+            <%= num%2===0 ? 'Even' : 'Odd' %>
+            </h3>
+
+        - now see the browser -->
+
+
+
+
+
+
+
+
+        Loops in EJS:
+
+        - another subreddit demo
+
+        - since all posts follow same format, can use a loop
+        in the template to format each post
+
+        - let's first set up a route called cats
+
+        - in index.js
+
+        - after the app.get('/')
+
+        - app.get('/cats', (req, res) => {
+        const cats = [
+        'Blue', 'Rocket', 'Monty', 'Stephanie', 'Winston'
+        ]
+        })
+
+        - defines an array of cats in the callback, pretend its an array
+        of information coming from a database
+
+        - now pass it through the template
+
+        - app.get('/cats', (req, res) => {
+        const cats = [
+        'Blue', 'Rocket', 'Monty', 'Stephanie', 'Winston'
+        ]
+        res.render('cats', { cats }) // could've name { cats } whatever you wanted like { allCats: cats }
+        })
+
+        - now made cats.ejs in the views directory
+
+        - did standard html template, made All Cats! the title,
+        added an h1 with innerText All the cats
+
+        - to make a ul with all the cat names an li use a loop
+
+        <!-- -
+            <ul>
+                <% for(let cat of cats){ %>
+                <li><%= cat %></li>
+                <% } %> 
+            </ul>    
+    -->
+
+        - now look in the browser and see if it worked localhost:3000/cats
+
+
+
+
+
+
+        More Complex Subreddit Demo:
+
+        - he created fake data for different subreddits in a data.json file
+
+        - look in the Express_Templating_CODE > Templating_DEMO > data.json
+        to see what his fake data was
+
+        - we need to import this, so he required it in the index.js under the const path
+
+        - const redditData = require('./data.json');
+
+        - console.log(redditData); to verify that it worked
+
+        - if you go to /r/soccer he wants to take that and plug it in to redditData
+        which he is already extracting from req.params in the
+        app.get('/r/:subreddit')
+
+        - to do that, under const { subreddit } = req.params;
+        he added
+
+        - const data = redditData[subreddit];
+
+        - console.log(data) right after const data to see if it's working
+
+        - now if you go to localhost:3000/r/soccer you should see the soccer
+        json printed to the console, same for chickens and the other data names
+
+        - now let's pass it to the template and use it
+
+        - instead of having to use data.name, data.description, etc. in the
+        ejs logic, he used the spread operator to spread the data like this
+
+        - under const data = redditData[subreddit];
+
+        - res.render('subreddit', { ...data });
+
+        - now in subreddit.ejs he made the title <%= name %>
+
+            <!--
+             made and <h1>Browsing the <%= name %> subreddit </h1> 
+        -->
+
+            - verify that it works in the browser, localhost:3000/r/chickens, localhost:3000/r/soccer
+
+            - now under the h1
+
+            - add an h2 with this inside
+
+            <!-- 
+            <%= description %>
+         -->
+
+            - verify that it works
+
+            - under the h2
+
+            <!-- 
+            <p><%= subscribers %> total subscribers!</p>
+         -->
+
+            - now he wants to render all posts using a loop
+
+            <!-- - he added an <hr> after the p in subreddit.ejs  -->
+
+            - then made a loop for the posts after that
+
+            <!-- 
+
+             <% for(let post of posts) { %>
+                    <article>
+                        <p><%= post.title %> - <b><%= post.author %></b></p>
+                    </article>
+            <% } %>
+
+          -->
+
+            - if there is an image, let's display the image
+
+            - can't just say, display the image because some posts don't have
+            images
+
+            - so he added a conditional after the p still inside article
+
+            <!-- 
+
+<% if(post.img) { %>
+        <img src="<%= post.img %>" alt="">
+<% } %>
+
+             -->
+
+            - check if it's working, localhost:3000/r/mightyharvest, localhost:3000/r/chickens
+
+            - can take the console.log(data) out of index.js > app.get('/r/:subreddit')
+            if haven't already
+
+            - to make sure that there is data, to handle if someone searches something
+            there isn't data for
+
+            - put the res.render in an if statement
+
+            <!-- 
+
+                app.get('/r/:subreddit', (req, res) => {
+                    const { subreddit } = req.params;
+                    const data = redditData[subreddit];
+                    if(data) {
+                        res.render('subreddit', { ...data });
+                    }
+                    else {
+                        res.render('notfound', { subreddit });
+                    }
+                })
+             -->
+
+            - so we need a notfound template, added notfound.ejs to the views directory
+
+            <!-- - added the standard html, made the title Not Found, then added
+            h1 with innerText I'm sorry, we couldn't find the <%= subreddit %> subreddit! -->
+
+            - try localhost:3000/r/dogs or any search not valid and see if the
+            error handler works

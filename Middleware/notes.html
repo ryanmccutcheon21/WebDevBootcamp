@@ -1,0 +1,128 @@
+What Matters?
+
+Crucial:
+
+- The concept of Middleware
+- Defining Custom Middleware
+
+
+Nice to have:
+
+- Morgan Logging Middleware
+
+
+
+
+
+Intro to Express Middleware:
+
+- Express middleware are functions that run during
+the request/response lifecycle.
+
+- Middleware is just a function
+
+- Each middleware has access to the request
+and response objects
+
+- Middleware can end the HTTP request by sending
+back a response with methods like res.send()
+
+- OR middleware can be chained together, one after
+another by calling next()
+
+- see Express docs on middleware for more info
+
+
+
+
+
+
+Using Morgan - Logger Middleware:
+
+- see bookmarked Morgan - Logger Middleware
+
+- it is a github repo
+
+- helps us log http request information
+in our terminal
+
+- really useful for debugging
+
+- npm i morgan
+
+- require it at top of index.js or app.js whatever
+you name it
+
+- then add: app.use(() => {
+morgan('tiny')
+})
+
+- saying for every single request,
+run the morgan('tiny') function
+
+
+
+
+
+
+Defining Our Own Middleware:
+
+- there are lots of situations where we want
+to use middleware
+
+- whatever function you put in an app.use
+will be called for every http request
+
+- go to the express docs, and go to guide,
+and go to the one about writing middleware
+
+- can call a third parameter in app.use called next
+
+- app.use((req, res, next) => {
+next();
+})
+
+- when called in the app.use, like in the above
+example, it will execute whatever the next middleware
+or route handler is
+
+
+
+
+
+
+Setting Up a 404 Route:
+
+- app.use('/dogs', (req, res, next) => {
+next();
+})
+
+- will only use this middleware when the route
+/dogs is requested
+
+- usually at the very end, before the app.listen
+, we'll use an app.use to generate a 404 response
+
+- app.use((req, res) => {
+res.status(404).send('NOT FOUND!')
+})
+
+- don't even need to call next, because
+we'll just call a res.send
+
+- will only run, because it's at the very end,
+if we never sent back anything before/ ended the
+cycle by matching one of the routes we made
+
+
+
+
+
+
+Protecting Specific Routes:
+
+- see how const verifyPassword is passed into
+the /secret route in index.js of the Middleware_Intro
+
+- the middleware is passed as a callback, and only is used
+in the /secret route
