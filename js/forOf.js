@@ -50,3 +50,74 @@ for (let row of seatingChart) {
 // Sakura
 // Jack
 // Erika
+
+
+
+// Iterating over Objects
+// Object literals are not considered iterables
+const testScores = {
+    ryan: 80,
+    raiden: 100,
+    kayla: 99,
+    nolan: 76,
+    breanna: 83
+}
+
+// use for In to loop over object literals
+for (let person in testScores) {
+    console.log(person)
+}
+// will just loop over the object keys
+// ryan
+// raiden
+// kayla
+// nolan
+// breanna
+
+// to get the value, log testScores[person]
+for (let person in testScores) {
+    console.log(`${person} scored ${testScores[person]}`)
+}
+// ryan scored 80
+// raiden scored 100
+// kayla scored 99
+// nolan scored 76
+// breanna scored 83
+
+
+
+
+// Other methods to iterate over Object literals
+
+
+// use the keys method on the Object object
+Object.keys(testScores);
+// will return array of the keys in testScores
+// ['ryan', 'raidem', 'kayla', 'nolan', 'breanna']
+
+
+// use the values method
+Object.values(testScores);
+// will return an array of the values
+
+// use the entries method
+Object.entries(testScores);
+// gives us a nested array of key: value pairs
+// [
+//     ['ryan', 80],
+//     ['raiden', 100],
+//     ['kayla', 99],
+//     ['nolan', 76],
+//     ['breanna', 83]
+// ]
+
+
+// Get an average of testScores
+let total = 0;
+let scores = Object.values(testScores);
+
+for (let score of scores) {
+    // console.log(score)
+    total += score;
+}
+console.log(total / scores.length);
